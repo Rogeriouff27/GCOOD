@@ -217,12 +217,12 @@ def train_dbgan(device, dataloader, discriminator, generator, path_weight):
 
 
 # This function is in charge of opening and preparing the data, training and plotting the results.
-def pipeline_dcgan(device, labels_for_training, loady_cifar10_train = True, pretraining = False, save_epoch = None):
+def pipeline_dcgan(device, labels_for_training, loady_train = True, pretraining = False, save_epoch = None):
     
      # We choose whether to get Cifar training data or test data to use in training
-    if(loady_cifar10_train):
+    if(loady_train):
         data, _ = loady_dataset()
-    elif(not loady_cifar10_train):
+    elif(not loady_train):
         _, data = loady_dataset()
     
     cls = data.classes

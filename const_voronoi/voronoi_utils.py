@@ -1,4 +1,5 @@
-from func_dataset.data_utils import loady_dataset, buid_dataset
+from func_dataset.data_utils import loady_dataset, build_dataset
+from settings.config import config_data_classifiers
 import torch
 from const_voronoi.config import config_voronoi
 import pickle
@@ -8,6 +9,7 @@ from scipy.spatial import Voronoi
 import networkx as nx
 import networkx.drawing
 from matplotlib import pyplot as plt
+import os
 
 
 # This function is used to get the avgpool layer, which is used in the get_data_for_const_voronoi function.
@@ -25,7 +27,7 @@ def get_feat_vec_and_labels(device, model):
     
     # extracting the dataset
     train_data, test_data = loady_dataset()
-    train_loader, _, test_loader = buid_dataset(train_data, test_data, 1000, validation_size = 0)
+    train_loader, _, test_loader = build_dataset(train_data, test_data, 1000, validation_size = 0)
     
     feat_vec_data = []
     labels_data = []
@@ -45,21 +47,33 @@ def get_feat_vec_and_labels(device, model):
     return feat_vec_data, labels_data
 
 # This function sorts the list of feat_vec output from the get_data_for_const_voronoi function and organizes this list by labels, that is, feat_vec with label 0 appear first, then feat_vec with label 1, then label2, and so on to the last label.
-def sort_feature_using_labels(feat_vc, labels, num_class = 10):
+def sort_feature_using_labels(feat_vec, labels, num_class):
     
     # First column is the label and second is the order in which it appears in the list
     order = [(y,x) for x, y in enumerate(labels) ]
     order = sorted(order)
     # feat_vec_ordered_by_labels is a list of feat_vec ordered by label, from label 0 to last label
     feat_vec_ordered_by_labels = []
+    # break_feat these are the divisions where one class ends and another starts
+    break_feat = [0]
     for k in range(num_class):
-        temp = [feat_vc[j] for (i,j) in order if i == k]
+        temp = []
+        break_lab = None
+        for count,(i,j) in enumerate(order):
+            if i == k:
+                temp.append(feat_vec[j])
+                break_lab = count 
+        break_feat.append(break_lab+1)
         feat_vec_ordered_by_labels.extend(temp)
-    return feat_vec_ordered_by_labels
+    return feat_vec_ordered_by_labels, break_feat
 
 
 # This function takes data from the resnet's avgpool layer and transforms it into data to be used in building the Voronoi diagram.
-def get_data_for_voronoi(num_comp_pca = 7):
+def get_data_for_voronoi(num_comp_pca):
+    
+    # File path
+    path = "/"+ os.path.join('root', 'PROJETOS', 'GCOOD', 'data', config_data_classifiers['dataset'], 'data_for_const_voronoi')
+    config_voronoi['path_save_data_for_voronoi'] = path
     
     # Opening files
     arquivo = open('{}/{}.pck'.format(config_voronoi['path_save_data_for_voronoi'], 'feat_vec_data'), "rb")
@@ -72,7 +86,7 @@ def get_data_for_voronoi(num_comp_pca = 7):
     
     # Ordering feat_vec_ordered_by_labels according to their labels, that is, first come the vectors from 
     # label 0, after label 1, and proceeds to the last label.
-    feat_vec_ordered_by_labels = sort_feature_using_labels(feat_vec_data, labels_data)
+    feat_vec_ordered_by_labels, break_feat = sort_feature_using_labels(feat_vec_data, labels_data, len(config_voronoi['cls']))
     
     # Takes each column of feat_vec_ordered_by_labels and calculates its average.
     mean_feat_vec_ord = np.array(feat_vec_ordered_by_labels).mean(axis=0)
@@ -82,17 +96,12 @@ def get_data_for_voronoi(num_comp_pca = 7):
     
     pca = PCA(n_components = num_comp_pca)
     
-    # Reduces the number of columns from 2048 to 7. Remember that the reduction cannot have a value greater than 
-    # or equal to 10 since the number of classes is 10, and therefore, it would not be possible to use this data 
-    # to build the diagram of Voronoi.
+    # Reduce the number of columns to build the Voronoi diagram. Remembering that the number of columns cannot be greater than the number of classes.
     pca_feat_vec_ord = pca.fit_transform(translated_feat_vec_ord)
     information_kept = pca.explained_variance_ratio_.sum()
     
-    # We are dividing pca_feat_vec_ord according to the class it belongs to. As pca_feat_vec_ord is ordered by 
-    # class, that is, first there are the elements of class 0, then those of class 1, and so on, and we have 10 
-    # classes, each containing 6000 images, let's make i vary from 1 to 11 and divide from the following form: 
-    # pca_feat_vec_ord[(i-1)*6000:i*6000.
-    pca_feat_vec_ord = np.array([pca_feat_vec_ord[(i-1)*6000:i*6000] for i in range(1,11)])
+    # We are splitting the pca_feat_vec_ord vector by putting all the elements of class 0 in a cell, then those of class 1, class 2, etc. 
+    pca_feat_vec_ord = np.array([pca_feat_vec_ord[break_feat[i]:break_feat[i+1]] for i in range(len(break_feat)-1)])
     
     # In each class its average vector is calculated.
     feat_vec_med_resized = np.array([x.mean(axis=0) for x in pca_feat_vec_ord])
@@ -116,12 +125,22 @@ def get_dic_vert_color(dict_vor, repeated_colors):
 
 
 # The function chooses the method that takes the greatest number of classes and returns information about the color graph associated with the last Voronoi diagram.
-def get_informatios_graph_coloring():
+def get_informatios_graph_coloring(dataset):
+    
+    if(dataset == 'CIFAR10'):
+        config_voronoi['cls'] = config_voronoi['CIFAR10']
+        config_voronoi['path_save_data_for_voronoi'] = "/"+ os.path.join('root', 'PROJETOS', 'GCOOD', 'data', 'CIFAR10', 'data_for_const_voronoi')
+    elif(dataset == 'CIFAR100'):
+        config_voronoi['cls'] = config_voronoi['CIFAR100']
+        config_voronoi['path_save_data_for_voronoi'] = "/"+ os.path.join('root', 'PROJETOS', 'GCOOD', 'data', 'CIFAR100', 'data_for_const_voronoi')
+   
+    else:
+        raise Exception('Unrecognized dataset: {}'.format(dataset))
     
     # number of classes
     num_class = len(config_voronoi['cls'])
     # Taking the data to build the Voronoi diagram
-    feat_vec_med_resized, _  = get_data_for_voronoi()
+    feat_vec_med_resized, _  = get_data_for_voronoi(config_voronoi['num_comp_pca'])
     
     # List of extremes of segments that cross perpendicularly the lines drawn by the Voronoi diagram.
     voronoi = Voronoi(feat_vec_med_resized)

@@ -14,6 +14,7 @@ from torch.utils.data.dataloader import DataLoader
 import albumentations
 import albumentations.pytorch
 import pickle
+import os
 
 #This function serves to get the data from CIFAR10
 # The transformation was taken from website reference: https://pytorch.org/tutorials/beginner/blitz/cifar10_tutorial.html
@@ -25,8 +26,17 @@ def loady_dataset():
         transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
     ])
     # Load Training and Test Data
-    train_data = datasets.CIFAR10('CIFAR10', train = True, download = True, transform = transformations)
-    test_data = datasets.CIFAR10('CIFAR10', train = False, download = True, transform = transformations)
+    if(config_data_classifiers['dataset'] == 'CIFAR10'):
+        train_data = datasets.CIFAR10(os.path.join('datasets', 'CIFAR10'), train = True, download = True, transform = transformations)
+        test_data = datasets.CIFAR10(os.path.join('datasets', 'CIFAR10'), train = False, download = True, transform = transformations)
+    
+    elif(config_data_classifiers['dataset'] == 'CIFAR100'):
+        train_data = datasets.CIFAR100(os.path.join('datasets', 'CIFAR100'), train = True, download = True, transform = transformations)
+        test_data = datasets.CIFAR100(os.path.join('datasets', 'CIFAR100'), train = False, download = True, transform = transformations)
+        
+   
+    else:
+        raise Exception('Unrecognized dataset: {}'.format(config_data_classifiers['dataset']))
     
     return train_data, test_data
 
@@ -131,7 +141,7 @@ def get_train_test_label_del(train_data, test_data, labels):
     return data_train, data_test
 
 
-# This class receives data from the get_dic_label_del function. This class is just a pre-processing of the data to be passed to the buid_dataset function.
+# This class receives data from the get_dic_label_del function. This class is just a pre-processing of the data to be passed to the build_dataset function.
 class CifarDataset(torch.utils.data.Dataset):
     
     # Constructor method
@@ -169,7 +179,7 @@ class CifarDataset(torch.utils.data.Dataset):
 
 
 # This function receives the data from CifarDataset and returns the data prepared to be used with the model.
-def buid_dataset(train_data, test_data, batch_size, validation_size = 0.2):
+def build_dataset(train_data, test_data, batch_size, validation_size = 0.2):
     
         
     # Size of train_data that will be used to create train and val indices
@@ -196,7 +206,7 @@ def buid_dataset(train_data, test_data, batch_size, validation_size = 0.2):
 
 
 # This function processes the dataset and returns it complete without breaking it into validation data..
-def buid_all_dataset(all_dataset, batch_size):
+def build_all_dataset(all_dataset, batch_size):
     
         
     # Size of train_data that will be used to create train indices
@@ -254,7 +264,7 @@ def get_train_test_excl_lab(device, labels, batch_size):
     # Building the output dataset
     train_changed = CifarDataset(train_changed, albumentations_transform_oneof)
     test_changed = CifarDataset(test_changed)
-    train_loader, valid_loader, test_loader = buid_dataset(train_changed, test_changed, batch_size)
+    train_loader, valid_loader, test_loader = build_dataset(train_changed, test_changed, batch_size)
     
     return train_loader, valid_loader, test_loader, num_class
 
@@ -522,6 +532,6 @@ def get_union_dataload_cifar10(batch_size):
     
     
     change_data_union = CifarDataset(data_union)
-    data_union = buid_all_dataset(change_data_union, batch_size)
+    data_union = build_all_dataset(change_data_union, batch_size)
     
     return data_union

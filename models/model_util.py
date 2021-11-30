@@ -1,6 +1,6 @@
 from func_dataset.data_utils import get_train_test_excl_lab, loady_dataset
 from models.my_models import all_classifiers
-from func_dataset.data_utils import buid_dataset
+from func_dataset.data_utils import build_dataset
 from settings.config import config_data_classifiers
 from settings.config import config_GCOOD_network
 from binary.binary_utils import get_train_test_for_network
@@ -27,7 +27,7 @@ def choose_optimizer(choose_optimizer, model, learning_rate):
     return optimizer
 
 
-#This function receives data from cifar 10 through the buid_dataset function of the func_dataset.data_utils package and trains model_resnet152 which is in the models.my_models package.
+#This function receives data from cifar 10 through the build_dataset function of the func_dataset.data_utils package and trains model_resnet152 which is in the models.my_models package.
 def train_classifier(device, model, config, train_loader, valid_loader):
     
     # Defines the Cost Function Based on Cross Entropy

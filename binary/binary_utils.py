@@ -3,7 +3,7 @@ from func_dataset.data_utils import pre_process_dataset_for_GCOOD, augmentation_
 from settings.config import config_data_classifiers
 from settings.config import config_GCOOD_network
 from func_dataset.data_utils import return_labels_train_teste
-from func_dataset.data_utils import buid_dataset, buid_all_dataset
+from func_dataset.data_utils import build_dataset, build_all_dataset
 import torch
 import pickle
 
@@ -28,19 +28,19 @@ def get_format_dataset_input(device, list_labels, mode_data = 'train'):
         data1,_,_ = pre_process_dataset_for_GCOOD(test_data)
         data_change = augmentation_data_for_GCOOD(data1, num_copy = 1)
         pre_process_data = CifarDataset(data_change)
-        data = buid_all_dataset(all_dataset = pre_process_data, batch_size = 1000)
+        data = build_all_dataset(all_dataset = pre_process_data, batch_size = 1000)
         
     # If the data is for validation
     elif(mode_data == 'valid'):
         _, data1,_ = pre_process_dataset_for_GCOOD(test_data)
         pre_process_data = CifarDataset(data1)
-        data = buid_all_dataset(all_dataset = pre_process_data, batch_size = 1000)
+        data = build_all_dataset(all_dataset = pre_process_data, batch_size = 1000)
       
     # If the data is test
     elif(mode_data == 'test'):
         _, _, data1 = pre_process_dataset_for_GCOOD(test_data)
         pre_process_data = CifarDataset(data1)
-        data = buid_all_dataset(all_dataset = pre_process_data, batch_size = 1000)
+        data = build_all_dataset(all_dataset = pre_process_data, batch_size = 1000)
         
     else:
         raise ValueError(f'Invalid mode_data({mode_data})')
@@ -151,8 +151,8 @@ def get_train_test_for_network():
     test_data = DatasetLabelBinary(test_lab_bin)
     
     
-    train_loader = buid_all_dataset(train_data, config_GCOOD_network['batch_size'])
-    valid_loader = buid_all_dataset(valid_data, config_GCOOD_network['batch_size'])
-    test_loader = buid_all_dataset(test_data, config_GCOOD_network['batch_size'])
+    train_loader = build_all_dataset(train_data, config_GCOOD_network['batch_size'])
+    valid_loader = build_all_dataset(valid_data, config_GCOOD_network['batch_size'])
+    test_loader = build_all_dataset(test_data, config_GCOOD_network['batch_size'])
     
     return train_loader, valid_loader, test_loader

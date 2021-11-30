@@ -13,18 +13,18 @@ if __name__=='__main__':
     parser = argparse.ArgumentParser(description = 'This variable will help configure the get_train_test_save function.')
 
     # default variables
-    dataset = 0   #0 for CIFAR10 and 1 for another dataset
+    dataset = 0   #0 for CIFAR10 and 1 for CIFAR100
 
     #Add arguments to argument list
-    parser.add_argument('-d', '--dataset', type=int, default=dataset, help="Choose 0 for cifar10, or 1 for another dataset.")
+    parser.add_argument('-d', '--dataset', type=int, default=dataset, help="Choose 0 for CIFAR10, or 1 for CIFAR100.")
 
     #Parse the arguments
     args = parser.parse_args()
     
     if(args.dataset == 0): 
-        used_dataset = 'cifar10'
+        used_dataset = 'CIFAR10'
     elif(args.dataset == 1):
-        used_dataset = 'another_dataset'
+        used_dataset = 'CIFAR100'
         
 
     #Settings

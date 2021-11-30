@@ -10,20 +10,31 @@ import matplotlib.pyplot as plt
 import torchvision.utils as vutils
 import torch.nn.parallel
 import torch.backends.cudnn as cudnn
+import os
 
 
 #This function serves to get the data from CIFAR10.
 # The normalization was taken from the website: https://pytorch.org/tutorials/beginner/blitz/cifar10_tutorial.html
 def loady_dataset():
     
-    # Transformations for Input Data.
+    # Transformations for Input Data
     transformations = transforms.Compose([
-    transforms.ToTensor(),
-    transforms.Normalize((0.5, 0.5, 0.5),(0.5, 0.5, 0.5))
+        transforms.ToTensor(),
+        transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
     ])
-    # Load Training and Test Data.
-    train_data = datasets.CIFAR10('CIFAR10', train = True, download = True, transform = transformations)
-    test_data = datasets.CIFAR10('CIFAR10', train = False, download = True, transform = transformations)
+    
+    # Load Training and Test Data
+    if(config_gan['dataset'] == 'CIFAR10'):
+        train_data = datasets.CIFAR10(os.path.join('datasets', 'CIFAR10'), train = True, download = True, transform = transformations)
+        test_data = datasets.CIFAR10(os.path.join('datasets', 'CIFAR10'), train = False, download = True, transform = transformations)
+    
+    elif(config_gan['dataset'] == 'CIFAR100'):
+        train_data = datasets.CIFAR100(os.path.join('datasets', 'CIFAR100'), train = True, download = True, transform = transformations)
+        test_data = datasets.CIFAR100(os.path.join('datasets', 'CIFAR100'), train = False, download = True, transform = transformations)
+        
+   
+    else:
+        raise Exception('Unrecognized dataset: {}'.format(config_gan['dataset']))
     
     return train_data, test_data
 
@@ -81,7 +92,7 @@ def get_dic_label_del(data, labels):
 
 
 # This class receives data from the get_dic_label_del function. This class is just a pre-processing of the data to be passed to the 
-# buid_dataset function.
+# build_dataset function.
 class PreProcessDataset(torch.utils.data.Dataset):
     
     # Método construtor
@@ -116,7 +127,7 @@ class PreProcessDataset(torch.utils.data.Dataset):
     
     
 # This function takes the data from the PreProcessDataset and returns the data prepared for use with the model.
-def buid_dataset(all_dataset, batch_size):
+def build_dataset(all_dataset, batch_size):
     
         
     # Size of train_data that will be used to create train and val indices.
@@ -147,7 +158,7 @@ def get_dataset_for_gans(dataset, labels, batch_size):
     
     # Building the output dataset.
     all_data = PreProcessDataset(all_data)
-    all_data_loader = buid_dataset(all_data, batch_size)
+    all_data_loader = build_dataset(all_data, batch_size)
     
     # Checking output data.
     assert list(next(iter(all_data_loader))[0][0].shape) == [config_gan['nc'], 32, 32], 'Expected output has the format [size_bath,{},{},{}]'.format(3, 32, 32)

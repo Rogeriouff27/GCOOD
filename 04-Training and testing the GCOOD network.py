@@ -12,21 +12,23 @@ if __name__=='__main__':
     parser = argparse.ArgumentParser(description = 'This path will be used to store the GCOOD model.')
 
     # default variables
-    dataset = 0   #0 for CIFAR10 and 1 for another dataset
+    dataset = 0   #0 for CIFAR10 and 1 for CIFAR100
     def_epoch = 150
     #def_path_root = os.path.join('data', 'cifar10', 'GCOOD_network', 'model')
 
     #Add arguments to argument list
-    parser.add_argument('-d', '--dataset', type=int, default=dataset, help="Choose 0 for cifar10, or 1 for another dataset.")
+    parser.add_argument('-d', '--dataset', type=int, default=dataset, help="Choose 0 for CIFAR10, or 1 for CIFAR100.")
     parser.add_argument('-e', '--epoch', type=int, default=def_epoch, help='Here the epochs are passed.')
 
     #Parse the arguments
     args = parser.parse_args()
     
     if(args.dataset == 0): 
-        used_dataset = 'cifar10'
+        used_dataset = 'CIFAR10'
+        input_size = 10
     elif(args.dataset == 1):
-        used_dataset = 'another_dataset'
+        used_dataset = 'CIFAR100'
+        input_size = 100
 
     #Settings
     config_GCOOD_network['path_folder_save_weight'] = os.path.join('data', used_dataset, 'GCOOD_network', 'model')
@@ -46,7 +48,7 @@ if __name__=='__main__':
             nn.init.constant_(m.bias.data, 0)
 
 
-    model = GCOOD_network(10,10,config_GCOOD_network)
+    model = GCOOD_network(2,input_size,config_GCOOD_network)
     model.to(device)
 
 

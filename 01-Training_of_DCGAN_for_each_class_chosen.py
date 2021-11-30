@@ -23,7 +23,7 @@ if __name__ == '__main__':
     def_epoch = 45000
 
     # Add arguments to argument list
-    parser.add_argument('-d', '--dataset', default=dataset, type=int, help="Choose 0 for cifar10, or 1 for another dataset.")
+    parser.add_argument('-d', '--dataset', default=dataset, type=int, help="Choose 0 for CIFAR10, 1 CIFAR100.")
     parser.add_argument('-e', '--epoch', type=int, default=def_epoch, help='Here the epochs are passed. Trainings are saved, in epochs multiple of 100.')
 
     # Parse the arguments
@@ -35,17 +35,15 @@ if __name__ == '__main__':
     # Choosing the used dataset
     if(args.dataset == 0):
         # Configuration of the path where the folder is located
-        config_gan['path_weight'] = os.path.join('data', 'cifar10' , 'gans_model')
+        config_gan['path_weight'] = os.path.join('data', 'CIFAR10' , 'gans_model')
+        config_gan['dataset'] = 'CIFAR10'
+        all_labels = list(range(10))
     elif(args.dataset == 1):
         # Configuration of the path where the folder is located
-        config_gan['path_weight'] = os.path.join('data', 'another_dataset', 'gans_model')
+        config_gan['path_weight'] = os.path.join('data', 'CIFAR100', 'gans_model')
+        config_gan['dataset'] = 'CIFAR100'
+        all_labels = list(range(100))
 
-
-    # dataset
-    data, _ = loady_dataset()
-
-    # all labels
-    all_labels = list(data.class_to_idx.values())
 
     #Pipeline gan training BCGAN iteratively going through all classes
     for label in all_labels:
